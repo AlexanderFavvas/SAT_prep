@@ -28,7 +28,7 @@ session = requests.Session()
 session.headers.update(HEADERS)
 
 
-r_meta = session.post(METADATA_URL, json=meta_payload)
+r_meta = session.post(METADATA_URL, json=meta_payload, timeout=5)
 r_meta.raise_for_status()
 metadata_list = r_meta.json()
 
@@ -38,18 +38,31 @@ print(f"Found {len(metadata_list)} question stubs.")
 all_questions = []
 for idx, stub in enumerate(metadata_list, start=1):
     uId = stub["uId"]
-    payload = {"external_id":"c240c048-e272-462b-b645-1751de050cdd"}
-    r_q = session.post(QUESTION_URL, json=payload)
-    try:
-        r_q.raise_for_status()
-    except requests.HTTPError:
-        print(f"  → Error fetching {uId}: {r_q.status_code}")
-        continue
+    payload = {"external_id": uId}
 
-    question_data = r_q.json()
-    all_questions.append(question_data)
+    retries = 3
+    request_succeeded = False
+    for i in range(retries):
+        try:
+            r_q = session.post(QUESTION_URL, json=payload, timeout=10)
+            r_q.raise_for_status()
+            question_data = r_q.json()
+            all_questions.append(question_data)
+            request_succeeded = True
+            break
+        except requests.exceptions.ConnectionError as e:
+            print(f"  → Connection error for {uId} on attempt {i + 1}. Resetting session.")
+            session.close()
+            session = requests.Session()
+            session.headers.update(HEADERS)
+            if i == retries - 1:
+                print(f"  → Final attempt failed for {uId}: {e}")
+        except Exception as e:
+            print(f"  → Non-connection error fetching {uId}: {e}")
+            break # Do not retry on other errors (e.g., JSON parsing)
 
-    print(f"[{idx}/{len(metadata_list)}] fetched question {uId}")
+    if request_succeeded:
+        print(f"[{idx}/{len(metadata_list)}] fetched question {uId}")
 
     # be polite
     time.sleep(0.2)

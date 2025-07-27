@@ -22,7 +22,9 @@ k = 2  # higher k means more similar questions
 keyphrases = [
     """ is the first term of the sequence, the value of""",
     """Expanding the left-hand side of this equation yields""",
-    """"""
+    """in this formula, the slope of the line can be calculated as""",
+    """sides of this equation must be equal, and the constant terms on both sides of this equation must not be equal""",
+
 ]
 
 with open("all_questions.json", "r") as f:
@@ -75,14 +77,12 @@ for match in matches:
     top_results = torch.topk(cosine_scores[0], k=k)
     top_scores = top_results.values.tolist()
     top_indices = top_results.indices.tolist()
-    
-    print("\n" + "="*40)
-    print("Original question (matched by keyphrase):")
-    show_html_helper(match)
 
+    
     for idx, (score, best_match_index) in enumerate(zip(top_scores, top_indices), 1):
         best_match_question = all_questions[best_match_index]
         print(f"\nMost similar question #{idx} (Cosine Similarity: {score:.4f}):")
         show_html_helper(best_match_question)
-        input(f"Press Enter to continue to the next match #{idx} and show answer...")
+        input(f"Press Enter to show answer...")
         print(best_match_question['rationale'])
+        input(f"Press Enter to continue to the next match #{idx}...")

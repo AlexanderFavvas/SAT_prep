@@ -50,7 +50,6 @@ for idx, stub in enumerate(metadata_list, start=1):
     all_questions.append(question_data)
 
     print(f"[{idx}/{len(metadata_list)}] fetched question {uId}")
-    break
 
     # be polite
     time.sleep(0.2)

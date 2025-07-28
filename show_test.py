@@ -3,55 +3,70 @@ from io import BytesIO
 import json
 from playwright.sync_api import sync_playwright
 
-with open("all_questions.json", "r") as f:
-    all_questions = json.load(f)
 
-def show_html(html):
-    # Wrap the partial HTML in a full document structure for the browser
-    full_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <style>
-            body {{
-                margin: 0;
-                padding: 1em;
-                background-color: white;
-                /* Set a reasonable width for the content */
-                width: 800px; 
-            }}
-        </style>
-    </head>
-    <body>
-        {html}
-    </body>
-    </html>
-    """
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
+class HTMLViewer:
+    def __init__(self):
+        """Launches a persistent browser instance."""
+        self.playwright = sync_playwright().start()
+        # Launch headless=False to make the browser window visible.
+        self.browser = self.playwright.chromium.launch(headless=False)
+        self.context = self.browser.new_context()
+        self.pages = []
+
+    def _get_full_html(self, html, title):
+        """Wraps content in a full HTML document."""
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+            <title>{title}</title>
+            <style>
+                body {{
+                    margin: 0;
+                    padding: 1em;
+                    background-color: white;
+                    /* Set a reasonable width for the content */
+                    width: 800px;
+                }}
+            </style>
+        </head>
+        <body>
+            {html}
+        </body>
+        </html>
+        """
+
+    def show(self, html, title="Content"):
+        """Shows HTML content in a new browser page."""
+        page = self.context.new_page()
+        full_html = self._get_full_html(html, title)
         page.set_content(full_html)
+        self.pages.append(page)
+        return page
 
-        # Wait for MathJax to finish rendering. 
-        # It adds a <mjx-container> element, so we wait for the first one to appear.
-        try:
-            page.wait_for_selector('mjx-container', timeout=15000)
-        except Exception as e:
-            print(f"MathJax did not render in time: {e}")
+    def update(self, page, html, title="Content"):
+        """Updates HTML content in an existing page."""
+        full_html = self._get_full_html(html, title)
+        page.set_content(full_html)
+        page.bring_to_front()
 
-        # Find the body element to screenshot just the content
-        body = page.query_selector('body')
-        if body:
-            # Take screenshot of just the body element
-            img_bytes = body.screenshot(type='png')
-        else:
-            # Fallback to full page screenshot if body isn't found
-            img_bytes = page.screenshot(type='png')
-        
-        browser.close()
+    def close_page(self, page):
+        """Closes a specific page."""
+        if page and not page.is_closed():
+            try:
+                page.close()
+                if page in self.pages:
+                    self.pages.remove(page)
+            except Exception:
+                # Page might already be closing or closed.
+                pass
 
-    image = Image.open(BytesIO(img_bytes))
-    image.show()
+    def close(self):
+        """Closes the browser and stops Playwright."""
+        if hasattr(self, 'browser') and self.browser:
+            self.browser.close()
+        if hasattr(self, 'playwright') and self.playwright:
+            self.playwright.stop()
 

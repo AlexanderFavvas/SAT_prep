@@ -3,6 +3,8 @@ import json
 import time
 
 
+GET_ENGLISH = True
+
 METADATA_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/digital/get-questions"
 QUESTION_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/digital/get-question"
 
@@ -18,11 +20,19 @@ HEADERS = {
 }
 
 
-meta_payload = {
+meta_payload_math = {
     "asmtEventId": 99,
     "test":        2,
     "domain":     "H,P,Q,S",
 }
+
+meta_payload_english = {
+    "asmtEventId": 99,
+    "test":        1,
+    "domain":     "INI,CAS,EOI,SEC",
+}
+
+meta_payload = meta_payload_english if GET_ENGLISH else meta_payload_math
 
 session = requests.Session()
 session.headers.update(HEADERS)
@@ -76,7 +86,7 @@ for idx, stub in enumerate(metadata_list, start=1):
     time.sleep(0.2)
 
 # save
-with open("all_questions.json", "w", encoding="utf-8") as f:
+with open(f"all_questions_{'english' if GET_ENGLISH else 'math'}.json", "w", encoding="utf-8") as f:
     json.dump(all_questions, f, ensure_ascii=False, indent=2)
 
-print(f"\nSaved {len(all_questions)} full questions to all_questions.json")
+print(f"\nSaved {len(all_questions)} full questions to all_questions_{'english' if GET_ENGLISH else 'math'}.json")

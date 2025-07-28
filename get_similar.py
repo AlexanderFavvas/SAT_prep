@@ -19,11 +19,15 @@ def get_question_html(match):
 
 k = 2  # higher k means more similar questions
 
+# Text contained within the target questions. They act as unique identifiers.
 keyphrases = [
     """ is the first term of the sequence, the value of""",
     """Expanding the left-hand side of this equation yields""",
     """in this formula, the slope of the line can be calculated as""",
     """sides of this equation must be equal, and the constant terms on both sides of this equation must not be equal""",
+    """right parenthesis x plus k j\"><mi>h</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mfenced><mrow><m""",
+    """Choice C is correct. The median of a data set with an odd number of values, in ascending or descending order""",
+    """that the graph shown is a partial graph of"""
 
 ]
 

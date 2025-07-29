@@ -121,10 +121,19 @@ try:
         question_html = get_question_html(question)
         viewer.update(question_page, question_html, f"Question")
         
-        input(f"Press Enter to show rationale...")
+        debug = input(f"Press Enter to show rationale...").strip().lower() == 'debug'
+        if debug:
+            with open("debug.json", "w") as f:
+                json.dump(question_html, f, indent=4)
+        debug = False
         
         viewer.update(rationale_page, question['rationale'], f"Rationale for Question")
-        input(f"Press Enter to continue...")
+        debug = input(f"Press Enter to continue...").strip().lower() == 'debug'
+        if debug:
+            with open("debug.json", "w") as f:
+                json.dump(question['rationale'], f, indent=4)
+        debug = False
+
 except KeyboardInterrupt:
     print("\nClosing browser...")
     viewer.close()

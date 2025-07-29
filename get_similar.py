@@ -4,6 +4,7 @@ from show_test import HTMLViewer
 import pickle
 import torch
 import os
+import random
 
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -27,7 +28,10 @@ keyphrases = [
     """sides of this equation must be equal, and the constant terms on both sides of this equation must not be equal""",
     """right parenthesis x plus k j\"><mi>h</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mfenced><mrow><m""",
     """Choice C is correct. The median of a data set with an odd number of values, in ascending or descending order""",
-    """that the graph shown is a partial graph of"""
+    """that the graph shown is a partial graph of""",
+    "The left-hand side of the given equation is the expression",
+    " positive, the parabola will open upward, and"
+
 
 ]
 
@@ -79,6 +83,7 @@ for i, thing in enumerate(all_questions):
 
 print(f"\nFound {len(matches)} questions matching keyphrases.")
 if matches:
+    random.shuffle(matches)
     print("Finding most similar questions...")
 
 blacklisted_indices = {
@@ -90,7 +95,7 @@ viewer = HTMLViewer()
 try:
     question_page = viewer.show("<html><body>Waiting for question...</body></html>", "Question")
     rationale_page = viewer.show("<html><body>Waiting for rationale...</body></html>", "Rationale")
-
+    print(f'{len(matches)} matches found, with {len(blacklisted_indices)} blacklisted\n\n{"="*100}\n\n')
     for i, match in enumerate(matches, 1):
         embedding = all_embeddings[match['original_index']]
         

@@ -86,62 +86,45 @@ if matches:
     random.shuffle(matches)
     print("Finding most similar questions...")
 
-blacklisted_indices = {
-    i for i, q in enumerate(all_questions)
-    if q.get('id') in blacklist
-}
+
 
 viewer = HTMLViewer()
+final_questions = []
+
+question_page = viewer.show("<html><body>Waiting for question...</body></html>", "Question")
+rationale_page = viewer.show("<html><body>Waiting for rationale...</body></html>", "Rationale")
+print(f'{len(matches)} matches found')
+for i, match in enumerate(matches, 1):
+    embedding = all_embeddings[match['original_index']]
+    
+    cosine_scores = util.cos_sim(embedding, all_embeddings)
+    
+    # Exclude the question itself and other initial matches from the similarity search
+    for m in matches:
+        cosine_scores[0][m['original_index']] = -1
+    
+    
+    top_results = torch.topk(cosine_scores[0], k=k)
+    top_indices = top_results.indices.tolist()
+
+
+    for idx, index in enumerate(top_indices, 1):
+        best_match_question = all_questions[index]
+        final_questions.append(best_match_question)
+
+
+random.shuffle(final_questions)
+
+
 try:
-    question_page = viewer.show("<html><body>Waiting for question...</body></html>", "Question")
-    rationale_page = viewer.show("<html><body>Waiting for rationale...</body></html>", "Rationale")
-    print(f'{len(matches)} matches found, with {len(blacklisted_indices)} blacklisted\n\n{"="*100}\n\n')
-    for i, match in enumerate(matches, 1):
-        embedding = all_embeddings[match['original_index']]
+    for question in final_questions:
+        question_html = get_question_html(question)
+        viewer.update(question_page, question_html, f"Question")
         
-        cosine_scores = util.cos_sim(embedding, all_embeddings)
+        input(f"Press Enter to show rationale...")
         
-        # Exclude the question itself and other initial matches from the similarity search
-        for m in matches:
-            cosine_scores[0][m['original_index']] = -1
-        
-        # Exclude blacklisted questions
-        for idx_bl in blacklisted_indices:
-            cosine_scores[0][idx_bl] = -1
-        
-        top_results = torch.topk(cosine_scores[0], k=k)
-        top_indices = top_results.indices.tolist()
-
-        print(f"\nFound {len(top_indices)} similar questions for Match {i}:")
-
-        for idx, index in enumerate(top_indices, 1):
-            best_match_question = all_questions[index]
-            print(f"\n--- Similar Question {idx}/{len(top_indices)} ---")
-
-            question_html = get_question_html(best_match_question)
-            viewer.update(question_page, question_html, f"Similar Question {idx}")
-            
-            input(f"Press Enter to show rationale...")
-
-            viewer.update(rationale_page, best_match_question['rationale'], f"Rationale for Similar Question {idx}")
-
-
-            got_it_right = input("Did you get it right? [y/n]: ").lower().strip() == 'y'
-
-
-            if got_it_right:
-                question_id = best_match_question.get('id')
-                if question_id:
-                    blacklist.add(question_id)
-                    blacklisted_indices.add(index)
-                    with open(blacklist_path, "w") as f:
-                        json.dump(list(blacklist), f)
-                    print(f"Question {question_id} added to blacklist. It will not be shown again.")
-
-            if idx < len(top_indices):
-                input(f"Press Enter to continue to the next similar question...")
-            else:
-                input(f"Press Enter to continue to the next main match...")
-finally:
-    print("Closing browser...")
+        viewer.update(rationale_page, question['rationale'], f"Rationale for Question")
+        input(f"Press Enter to continue...")
+except KeyboardInterrupt:
+    print("\nClosing browser...")
     viewer.close()

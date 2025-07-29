@@ -9,7 +9,7 @@ class HTMLViewer:
         """Launches a persistent browser instance."""
         self.playwright = sync_playwright().start()
         # Launch headless=False to make the browser window visible.
-        self.browser = self.playwright.chromium.launch(headless=False)
+        self.browser = self.playwright.firefox.launch(headless=False)
         self.context = self.browser.new_context()
         self.pages = []
 
@@ -20,6 +20,26 @@ class HTMLViewer:
         <html>
         <head>
             <meta charset="utf-8">
+            <script>
+            MathJax = {{
+                chtml: {{
+                    fontURL: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2'
+                }},
+                'fast-preview': {{
+                    disabled: true
+                }},
+                tex: {{
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                    processEscapes: true
+                }},
+                options: {{
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
+                }}
+            }};
+            </script>
             <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
             <title>{title}</title>
             <style>
@@ -28,7 +48,9 @@ class HTMLViewer:
                     padding: 1em;
                     background-color: white;
                     /* Set a reasonable width for the content */
-                    width: 800px;
+                    max-width: 800px;
+                    margin-left: auto;
+                    margin-right: auto;
                 }}
             </style>
         </head>
@@ -43,6 +65,7 @@ class HTMLViewer:
         page = self.context.new_page()
         full_html = self._get_full_html(html, title)
         page.set_content(full_html)
+        page.bring_to_front()
         self.pages.append(page)
         return page
 

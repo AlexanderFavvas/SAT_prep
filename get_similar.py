@@ -10,10 +10,10 @@ import random
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def get_question_html(match):
-    html = match['stem']
+    html = f"<div>{match['stem']}</div>"
     html += "<ol type='A'>"
     for option in match['answerOptions']:
-        html += f"<li>{option['content']}</li>"
+        html += f"<li><div>{option['content']}</div></li>"
     html += "</ol>"
     return html
 
@@ -125,13 +125,11 @@ try:
 
             viewer.update(rationale_page, best_match_question['rationale'], f"Rationale for Similar Question {idx}")
 
-            while True:
-                got_it_right = input("Did you get it right? [y/n]: ").lower().strip()
-                if got_it_right in ['y', 'n']:
-                    break
-                print("Invalid input. Please enter 'y' or 'n'.")
 
-            if got_it_right == 'y':
+            got_it_right = input("Did you get it right? [y/n]: ").lower().strip() == 'y'
+
+
+            if got_it_right:
                 question_id = best_match_question.get('id')
                 if question_id:
                     blacklist.add(question_id)

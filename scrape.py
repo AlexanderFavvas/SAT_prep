@@ -3,7 +3,7 @@ import json
 import time
 
 
-GET_ENGLISH = True
+GET_ENGLISH = False
 
 METADATA_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/digital/get-questions"
 QUESTION_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/digital/get-question"
@@ -42,12 +42,17 @@ r_meta = session.post(METADATA_URL, json=meta_payload, timeout=5)
 r_meta.raise_for_status()
 metadata_list = r_meta.json()
 
+
 print(f"Found {len(metadata_list)} question stubs.")
+
+with open('metadata_list.json', 'w') as f:
+    json.dump(metadata_list, f, indent=4)
 
 
 all_questions = []
 for idx, stub in enumerate(metadata_list, start=1):
     external_id = stub.get("external_id")
+    difficulty = stub.get("difficulty")  # Get difficulty from stub
     if not external_id:
         print(f"  → Skipping question stub {idx} because it is missing an external_id.")
         continue
@@ -76,6 +81,9 @@ for idx, stub in enumerate(metadata_list, start=1):
     if "$fault" in question_data and question_data["$fault"] == "client":
         print(f"  → API Error for {external_id}: {question_data.get('message', 'No message')}")
         continue
+
+    # Add difficulty to the question data
+    question_data["difficulty"] = difficulty
 
     all_questions.append(question_data)
 

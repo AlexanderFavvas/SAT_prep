@@ -6,6 +6,9 @@ import torch
 import os
 import random
 
+all_questions_filepath = "all_questions_math.json"
+
+difficulty = 'H' # 'H' for hard, 'M' for medium, 'E' for easy, False for all
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -18,7 +21,7 @@ def get_question_html(match):
     return html
 
 
-k = 2  # higher k means more similar questions
+k = 5  # higher k means more similar questions
 
 # Text contained within the target questions. They act as unique identifiers.
 keyphrases = [
@@ -32,11 +35,13 @@ keyphrases = [
     "The left-hand side of the given equation is the expression",
     " positive, the parabola will open upward, and"
 
-
 ]
 
-with open("all_questions.json", "r") as f:
+with open(all_questions_filepath, "r") as f:
     all_questions = json.load(f)
+    if difficulty:
+        all_questions = [q for q in all_questions if q['difficulty'] == difficulty]
+
 
 blacklist_path = "blacklist.json"
 if os.path.exists(blacklist_path):
@@ -110,7 +115,7 @@ for i, match in enumerate(matches, 1):
 
     for idx, index in enumerate(top_indices, 1):
         best_match_question = all_questions[index]
-        final_questions.append(best_match_question)
+        final_questions.append([best_match_question, match])
 
 
 random.shuffle(final_questions)
@@ -118,20 +123,22 @@ random.shuffle(final_questions)
 
 try:
     for question in final_questions:
-        question_html = get_question_html(question)
+        question_html = get_question_html(question[0])
         viewer.update(question_page, question_html, f"Question")
         
-        debug = input(f"Press Enter to show rationale...").strip().lower() == 'debug'
-        if debug:
+        debug = input(f"Press Enter to show rationale...").strip().lower()
+        if debug == 'debug':
             with open("debug.json", "w") as f:
-                json.dump(question_html, f, indent=4)
+                json.dump({"question": question, "question_html": question_html}, f, indent=4)
+        elif debug == 'show_original':
+            viewer.update(question_page, get_question_html(question[1]), f"Original Question")
         debug = False
         
-        viewer.update(rationale_page, question['rationale'], f"Rationale for Question")
-        debug = input(f"Press Enter to continue...").strip().lower() == 'debug'
-        if debug:
+        viewer.update(rationale_page, question[0]['rationale'], f"Rationale for Question")
+        debug = input(f"Press Enter to continue...").strip().lower()
+        if debug == 'debug':
             with open("debug.json", "w") as f:
-                json.dump(question['rationale'], f, indent=4)
+                json.dump({"question": question, "rationale": question[0]['rationale']}, f, indent=4)
         debug = False
 
 except KeyboardInterrupt:

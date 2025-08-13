@@ -7,6 +7,7 @@ GET_ENGLISH = False
 
 METADATA_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/digital/get-questions"
 QUESTION_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/digital/get-question"
+LOOKUP_URL = "https://qbank-api.collegeboard.org/msreportingquestionbank-prod/questionbank/lookup"
 
 
 HEADERS = {
@@ -36,6 +37,20 @@ meta_payload = meta_payload_english if GET_ENGLISH else meta_payload_math
 
 session = requests.Session()
 session.headers.update(HEADERS)
+
+
+r_lookup = session.get(LOOKUP_URL, timeout=5)
+r_lookup.raise_for_status()
+lookup_data = r_lookup.json()
+math_live_items = lookup_data.get("mathLiveItems", [])
+reading_live_items = lookup_data.get("readingLiveItems", [])
+
+
+print(f"Found {len(math_live_items)} live math question external IDs.")
+print(f"Found {len(reading_live_items)} live english question external IDs.")
+
+
+live_items_to_exclude = reading_live_items if GET_ENGLISH else math_live_items
 
 
 r_meta = session.post(METADATA_URL, json=meta_payload, timeout=5)
@@ -94,7 +109,18 @@ for idx, stub in enumerate(metadata_list, start=1):
     time.sleep(0.2)
 
 # save
-with open(f"all_questions_{'english' if GET_ENGLISH else 'math'}.json", "w", encoding="utf-8") as f:
+file_suffix = 'english' if GET_ENGLISH else 'math'
+with open(f"all_questions_{file_suffix}.json", "w", encoding="utf-8") as f:
     json.dump(all_questions, f, ensure_ascii=False, indent=2)
 
-print(f"\nSaved {len(all_questions)} full questions to all_questions_{'english' if GET_ENGLISH else 'math'}.json")
+print(f"\nSaved {len(all_questions)} full questions to all_questions_{file_suffix}.json")
+
+non_live_questions = [
+    q for q in all_questions
+    if q.get("externalid") not in live_items_to_exclude
+]
+
+with open(f"all_questions_{file_suffix}_non_live.json", "w", encoding="utf-8") as f:
+    json.dump(non_live_questions, f, ensure_ascii=False, indent=2)
+
+print(f"\nSaved {len(non_live_questions)} non-live full questions to all_questions_{file_suffix}_non_live.json")

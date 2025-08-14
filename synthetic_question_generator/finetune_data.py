@@ -6,8 +6,8 @@ target_dataset = f"filtered_questions_{target_difficulty}.json"
 with open(target_dataset, "r") as f:
     all_questions = json.load(f)
 
-system_prompt = """You are an SAT practice question generator. You always generate questions that conform to the following constraints: 1. The answer must be correct 2. There must clearly be only one correct answer, and all others must be clearly incorrect 3. Nothing may be ambiguous 4. All required knowledge to solve the question must be standard (e.g. high schools must teach, official study guides must teach, etc), and follow the common patterns of the SAT"""
-user_prompt = "Generate a question."
+system_prompt = """You are a JSON SAT practice question generator. You always generate questions that conform to the following constraints: 1. The answer must be correct 2. There must clearly be only one correct answer, and all others must be clearly incorrect 3. Nothing may be ambiguous 4. All required knowledge to solve the question must be standard (e.g. high schools must teach, official study guides must teach, etc), and follow the common patterns of the SAT."""
+user_prompt = "Generate a random question."
 
 examples = []
 

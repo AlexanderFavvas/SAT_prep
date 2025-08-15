@@ -1,28 +1,7 @@
 import json
 
-with open('all_questions_math_non_live.json', 'r') as f:
-    all_questions = json.load(f)
+variable = {"messages": [{"role": "system", "content": "You are a JSON SAT practice question generator. You always generate questions that conform to the following constraints: 1. The answer must be correct 2. There must clearly be only one correct answer, and all others must be clearly incorrect 3. Nothing may be ambiguous 4. All required knowledge to solve the question must be standard (e.g. high schools must teach, official study guides must teach, etc), and follow the common patterns of the SAT."}, {"role": "user", "content": "Generate a question with the following stem: <p style=\"text-align: center;\"><math alttext=\"5 x squared plus 10 x plus 16 equals 0\"><mrow>\n\t<mrow>\n\t\t<mrow>\n\t\t\t<mn>5</mn>\n\t\t\t<msup>\n\t\t\t\t<mi>x</mi>\n\t\t\t\t<mn>2</mn>\n\t\t\t</msup>\n\t\t</mrow>\n\t\t<mo>+</mo>\n\t\t<mrow>\n\t\t\t<mn>10</mn>\n\t\t\t<mi>x</mi>\n\t\t</mrow>\n\t\t<mo>+</mo>\n\t\t<mn>16</mn>\n\t</mrow>\n\t<mo>=</mo>\n\t<mn>0</mn>\n</mrow>\n</math></p>\n<p style=\"text-align: left;\">How many distinct real solutions does the given equation have?</p> and the following answer: <p>Zero</p>"}, {"role": "assistant", "content": "{\"stem\": \"<p style=\\\"text-align: center;\\\"><math alttext=\\\"5 x squared plus 10 x plus 16 equals 0\\\"><mrow>\\n\\t<mrow>\\n\\t\\t<mrow>\\n\\t\\t\\t<mn>5</mn>\\n\\t\\t\\t<msup>\\n\\t\\t\\t\\t<mi>x</mi>\\n\\t\\t\\t\\t<mn>2</mn>\\n\\t\\t\\t</msup>\\n\\t\\t</mrow>\\n\\t\\t<mo>+</mo>\\n\\t\\t<mrow>\\n\\t\\t\\t<mn>10</mn>\\n\\t\\t\\t<mi>x</mi>\\n\\t\\t</mrow>\\n\\t\\t<mo>+</mo>\\n\\t\\t<mn>16</mn>\\n\\t</mrow>\\n\\t<mo>=</mo>\\n\\t<mn>0</mn>\\n</mrow>\\n</math></p>\\n<p style=\\\"text-align: left;\\\">How many distinct real solutions does the given equation have?</p>\", \"rationale\": \"<p>Choice D is correct. The number of solutions of a quadratic equation of the form <math alttext=\\\"a x squared plus b x plus c equals 0\\\"><mi>a</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mi>b</mi><mi>x</mi><mo>+</mo><mi>c</mi><mo>=</mo><mn>0</mn></math>, where <math alttext=\\\"a\\\"><mi>a</mi>\\n</math>, <math alttext=\\\"b\\\"><mi>b</mi>\\n</math>, and <math alttext=\\\"c\\\"><mi>c</mi>\\n</math> are constants, can be determined by the value of the discriminant, <math alttext=\\\"b squared minus 4 a c\\\"><msup><mi>b</mi><mn>2</mn></msup><mo>-</mo><mn>4</mn><mi>a</mi><mi>c</mi></math>. If the value of the discriminant is positive, then the quadratic equation has exactly two distinct real solutions. If the value of the discriminant is equal to zero, then the quadratic equation has exactly one real solution. If the value of the discriminant is negative, then the quadratic equation has zero real solutions. In the given equation, <math alttext=\\\"5 x squared plus 10 x plus 16 equals 0\\\"><mn>5</mn><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mn>10</mn><mi>x</mi><mo>+</mo><mn>16</mn><mo>=</mo><mn>0</mn></math>, <math alttext=\\\"a equals 5\\\"><mi>a</mi><mo>=</mo><mo>&nbsp;</mo><mn>5</mn></math>, <math alttext=\\\"b equals 10\\\"><mi>b</mi><mo>=</mo><mn>10</mn></math>, and <math alttext=\\\"c equals 16\\\"><mi>c</mi><mo>=</mo><mn>16</mn></math>. Substituting these values for <math alttext=\\\"a\\\"><mi>a</mi>\\n</math>, <math alttext=\\\"b\\\"><mi>b</mi>\\n</math>, and <math alttext=\\\"c\\\"><mi>c</mi>\\n</math> in&nbsp;<math alttext=\\\"b squared minus 4 a c\\\"><msup><mi>b</mi><mn>2</mn></msup><mo>-</mo><mn>4</mn><mi>a</mi><mi>c</mi></math> yields <math alttext=\\\"left parenthesis 10 right parenthesis squared minus 4 left parenthesis 5 right parenthesis left parenthesis 16 right parenthesis\\\"><msup><mfenced><mn>10</mn></mfenced><mn>2</mn></msup><mo>-</mo><mn>4</mn><mfenced><mn>5</mn></mfenced><mfenced><mn>16</mn></mfenced></math>, or <math alttext=\\\"negative 220\\\"><mo>-</mo><mn>220</mn></math>. Since the value of its discriminant is negative, the given equation has zero real solutions. Therefore, the number of distinct real solutions the given equation has is zero.</p>\\n<p>Choice A is incorrect and may result from conceptual or calculation errors.</p>\\n<p>Choice B is incorrect and may result from conceptual or calculation errors.</p>\\n<p>Choice C is incorrect and may result from conceptual or calculation errors.</p>\", \"type\": \"mcq\", \"answerOptions\": [{\"id\": \"A\", \"content\": \"<p>Exactly one</p>\"}, {\"id\": \"B\", \"content\": \"<p>Exactly two</p>\"}, {\"id\": \"C\", \"content\": \"<p>Infinitely many</p>\"}, {\"id\": \"D\", \"content\": \"<p>Zero</p>\"}], \"correct_answer\": [\"D\"]}"}]}
 
 
-
-lengths = []
-total_length = 0
-for question in all_questions:
-    lengths.append(len(str(question)))
-    total_length += len(str(question))
-
-
-print(f"Total length: {total_length}")
-print(f"Average length: {total_length / len(all_questions)}")
-
-top_n_percent = int(input("Enter the percent of smallest questions to keep: "))
-
-sorted_lengths = sorted(lengths)
-
-index_cutoff = int(len(sorted_lengths) * (top_n_percent / 100))
-
-new_lengths = sorted_lengths[:index_cutoff]
-new_total_length = sum(new_lengths)
-
-print(f"New total length (kept {top_n_percent}% smallest): {new_total_length}")
-print(f"This is {new_total_length / total_length * 100}% of the original total length")
+with open('test.json', 'w') as f:
+    json.dump(variable, f, indent=4)
